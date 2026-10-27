@@ -3,7 +3,7 @@
 **Un dock alternativo per macOS, con widget di sistema, Spotify e batterie delle cuffie.**
 *An alternative macOS Dock with system widgets, Spotify and headphone battery — docs in Italian.*
 
-Molo prende il posto del Dock di Apple: tiene le tue app, le app aperte e il Cestino, e in più mostra a colpo d'occhio ora, CPU, RAM, batteria, rete, disco, il brano di Spotify e la carica delle AirPods. Ingrandimento "a onda", rimbalzo all'avvio e animazioni come il Dock originale.
+Molo prende il posto del Dock di Apple: tiene le tue app, le app aperte e il Cestino, e in più mostra a colpo d'occhio ora, CPU, RAM, batteria, rete, disco, il brano di Spotify e la carica delle AirPods. Ingrandimento "a onda" su icone e widget, rimbalzo all'avvio e animazioni come il Dock originale.
 
 ---
 

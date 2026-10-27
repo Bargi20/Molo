@@ -36,6 +36,8 @@ struct DockBar: View {
     @State private var dropTargeted = false
     /// Bordo sinistro del gruppo di icone a riposo: la base per calcolare l'onda.
     @State private var groupBaseMinX: CGFloat = 0
+    /// Posizione a riposo di ogni widget, per includerli nell'onda.
+    @State private var widgetFrames: [String: CGRect] = [:]
 
     private var iconSize: CGFloat { settings.effectiveIconSize }
     private var iconPadding: CGFloat { iconSize * 0.03 }
@@ -47,7 +49,10 @@ struct DockBar: View {
         HStack(alignment: .center, spacing: 8) {
             if settings.showWidgets && !settings.enabledWidgets.isEmpty {
                 SystemWidgets(system: system, spotify: spotify, devices: devices,
-                              enabled: settings.enabledWidgets, height: iconSize + 4)
+                              enabled: settings.enabledWidgets, height: iconSize + 4,
+                              scales: wave.scales) { key, frame in
+                    if hover.pointerX == nil, widgetFrames[key] != frame { widgetFrames[key] = frame }
+                }
                 DockSeparator(height: iconSize)
             }
             HStack(alignment: .bottom, spacing: 0) {
@@ -102,44 +107,64 @@ struct DockBar: View {
         var offset: CGFloat = 0
     }
 
-    /// Ingrandimento "a onda" come il Dock di Apple: le icone vicine al puntatore crescono con una curva
+    /// Un elemento che partecipa all'onda: centro e larghezza a riposo (coordinate della finestra).
+    private struct WaveItem {
+        let id: String
+        let center: CGFloat
+        let width: CGFloat
+        /// I widget sono più grandi delle icone: crescono un po' meno.
+        let strength: CGFloat
+    }
+
+    /// Ingrandimento "a onda" come il Dock di Apple: gli elementi vicini al puntatore crescono con una curva
     /// a coseno, e la barra si sposta così che il punto sotto il puntatore resti fermo.
     private func computeWave() -> Wave {
         let magnification = CGFloat(settings.magnification)
         guard let pointer = hover.pointerX, magnification > 1.01 else { return Wave() }
 
-        var centers: [(String, CGFloat)] = []
-        var position: CGFloat = 0
-        let separatorWidth = 1 + Self.separatorPadding * 2
-        for item in apps.pinned {
-            centers.append((item.id, position + unit / 2)); position += unit
+        var items: [WaveItem] = []
+        if settings.showWidgets {
+            let keys = SystemWidgets.visibleKeys(system: system, spotify: spotify, devices: devices,
+                                                 enabled: settings.enabledWidgets)
+            for key in keys {
+                guard let frame = widgetFrames[key] else { continue }
+                items.append(WaveItem(id: key, center: frame.midX, width: frame.width, strength: 0.6))
+            }
         }
+        var position = groupBaseMinX
+        let separatorWidth = 1 + Self.separatorPadding * 2
+        func addIcon(_ id: String) {
+            items.append(WaveItem(id: id, center: position + unit / 2, width: unit, strength: 1))
+            position += unit
+        }
+        apps.pinned.forEach { addIcon($0.id) }
         if settings.showRunningApps && !apps.running.isEmpty {
             position += separatorWidth
-            for item in apps.running {
-                centers.append((item.id, position + unit / 2)); position += unit
-            }
+            apps.running.forEach { addIcon($0.id) }
         }
         if settings.showTrash {
             position += separatorWidth
-            centers.append(("trash", position + unit / 2)); position += unit
+            addIcon("trash")
         }
 
-        let local = pointer - groupBaseMinX
-        guard local > -unit / 2, local < position + unit / 2 else { return Wave() }
+        guard let first = items.first, let last = items.last,
+              pointer > first.center - first.width / 2 - unit / 2,
+              pointer < last.center + last.width / 2 + unit / 2 else { return Wave() }
 
         let radius = unit * 2.6
         var wave = Wave()
         var extra: CGFloat = 0
         var extraLeft: CGFloat = 0
-        for (id, center) in centers {
-            let distance = abs(local - center)
+        for item in items {
+            // Per gli elementi larghi conta la distanza dal bordo più vicino, non dal centro.
+            let distance = max(0, abs(pointer - item.center) - max(0, item.width - unit) / 2)
             let falloff = distance < radius ? (cos(.pi * distance / radius) + 1) / 2 : 0
-            let scale = 1 + (magnification - 1) * falloff
-            wave.scales[id] = scale
-            let grow = iconSize * (scale - 1)
+            let scale = 1 + (magnification - 1) * item.strength * falloff
+            wave.scales[item.id] = scale
+            let grow = (item.strength == 1 ? iconSize : item.width) * (scale - 1)
             extra += grow
-            extraLeft += grow * min(1, max(0, (local - (center - unit / 2)) / unit))
+            let left = item.center - item.width / 2
+            extraLeft += grow * min(1, max(0, (pointer - left) / item.width))
         }
         wave.offset = extra / 2 - extraLeft
         return wave

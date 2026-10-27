@@ -20,7 +20,29 @@ struct SystemWidgets: View {
     @ObservedObject var devices: DeviceBatteryMonitor
     let enabled: Set<DockWidget>
     let height: CGFloat
+    /// Ingrandimento di ogni riquadro (chiavi da `visibleKeys`) e callback con la sua posizione.
+    var scales: [String: CGFloat] = [:]
+    var onFrame: (String, CGRect) -> Void = { _, _ in }
     private var k: CGFloat { height / 52 }
+
+    /// Le chiavi dei riquadri visibili, da sinistra a destra.
+    static func visibleKeys(system: SystemMonitor, spotify: SpotifyMonitor, devices: DeviceBatteryMonitor,
+                            enabled: Set<DockWidget>) -> [String] {
+        var keys: [String] = []
+        if enabled.contains(.clock) { keys.append("w.clock") }
+        if enabled.contains(.spotify) && spotify.hasTrack { keys.append("w.spotify") }
+        if enabled.contains(.cpu) { keys.append("w.cpu") }
+        if enabled.contains(.ram) { keys.append("w.ram") }
+        if enabled.contains(.battery) && system.batteryLevel != nil { keys.append("w.battery") }
+        if enabled.contains(.devices) { keys += devices.devices.map { "w.dev." + $0.id } }
+        if enabled.contains(.network) { keys.append("w.network") }
+        if enabled.contains(.disk) { keys.append("w.disk") }
+        return keys
+    }
+
+    private func magnify(_ key: String) -> Magnify {
+        Magnify(scale: scales[key] ?? 1) { onFrame(key, $0) }
+    }
 
     var body: some View {
         HStack(spacing: 6 * k) {
@@ -38,10 +60,12 @@ struct SystemWidgets: View {
                     }
                     .frame(minWidth: 62 * k)
                 }
+                .modifier(magnify("w.clock"))
             }
 
             if enabled.contains(.spotify) && spotify.hasTrack {
                 SpotifyTile(spotify: spotify, height: height)
+                    .modifier(magnify("w.spotify"))
                     .transition(.scale(scale: 0.6, anchor: .bottom).combined(with: .opacity))
             }
 
@@ -52,6 +76,7 @@ struct SystemWidgets: View {
                          color: loadColor(system.cpu),
                          height: height,
                          action: { openApp("com.apple.ActivityMonitor") })
+                    .modifier(magnify("w.cpu"))
             }
 
             if enabled.contains(.ram) {
@@ -61,6 +86,7 @@ struct SystemWidgets: View {
                          color: loadColor(system.memoryFraction),
                          height: height,
                          action: { openApp("com.apple.ActivityMonitor") })
+                    .modifier(magnify("w.ram"))
             }
 
             if enabled.contains(.battery), let level = system.batteryLevel {
@@ -70,11 +96,13 @@ struct SystemWidgets: View {
                          color: batteryColor(level),
                          height: height,
                          action: { openURL("x-apple.systempreferences:com.apple.Battery-Settings.extension") })
+                    .modifier(magnify("w.battery"))
             }
 
             if enabled.contains(.devices) {
                 ForEach(devices.devices) { device in
                     DeviceTile(device: device, height: height)
+                        .modifier(magnify("w.dev." + device.id))
                         .transition(.scale(scale: 0.6, anchor: .bottom).combined(with: .opacity))
                 }
             }
@@ -93,6 +121,7 @@ struct SystemWidgets: View {
                     .labelStyle(CompactLabelStyle(k: k))
                     .frame(width: 72 * k, alignment: .leading)
                 }
+                .modifier(magnify("w.network"))
             }
 
             if enabled.contains(.disk) {
@@ -102,6 +131,7 @@ struct SystemWidgets: View {
                          color: loadColor(system.diskUsedFraction),
                          height: height,
                          action: { openApp("com.apple.DiskUtility") })
+                    .modifier(magnify("w.disk"))
             }
         }
         .environment(\.widgetScale, height / 52)
@@ -113,6 +143,23 @@ struct SystemWidgets: View {
         if system.batteryCharging { return "Batteria \(level)% · in carica" }
         if system.batteryOnAC { return "Batteria \(level)% · collegato all'alimentazione" }
         return "Batteria \(level)%"
+    }
+}
+
+/// Ingrandisce un riquadro dal basso e gli fa spazio ai lati, come le icone nell'onda.
+struct Magnify: ViewModifier {
+    let scale: CGFloat
+    let onFrame: (CGRect) -> Void
+    @State private var width: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { frame in
+                width = frame.width
+                onFrame(frame)
+            }
+            .scaleEffect(scale, anchor: .bottom)
+            .padding(.horizontal, width * (scale - 1) / 2)
     }
 }
 
@@ -136,7 +183,7 @@ struct WidgetTile<Content: View>: View {
                     .fill(Color.primary.opacity(hovering ? 0.14 : 0.07))
             )
             .contentShape(Rectangle())
-            .scaleEffect(pressed ? 0.94 : (hovering ? 1.04 : 1), anchor: .bottom)
+            .scaleEffect(pressed ? 0.94 : 1, anchor: .bottom)
             .overlay(alignment: .top) {
                 if hovering {
                     HoverBubble(text: detail)
