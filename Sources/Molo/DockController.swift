@@ -98,7 +98,10 @@ final class DockController {
         // Debug: `Molo --snapshot file.png` salva un'immagine della finestra ed esce.
         if let i = CommandLine.arguments.firstIndex(of: "--snapshot"), i + 1 < CommandLine.arguments.count {
             let path = CommandLine.arguments[i + 1]
-            if CommandLine.arguments.contains("--settings") { showSettings() }
+            if let t = CommandLine.arguments.firstIndex(of: "--settings"), t + 1 < CommandLine.arguments.count {
+                SettingsView.initialTab = Int(CommandLine.arguments[t + 1]) ?? 0
+                showSettings()
+            }
             // `--pointer X` simula il mouse sopra la barra, per vedere l'ingrandimento.
             if let p = CommandLine.arguments.firstIndex(of: "--pointer"), p + 1 < CommandLine.arguments.count,
                let x = Double(CommandLine.arguments[p + 1]) {
@@ -138,6 +141,40 @@ final class DockController {
             MainActor.assumeIsolated { self?.trackMouse() }
         }
         RunLoop.main.add(mouseTimer!, forMode: .common)
+
+        // Debug: `Molo --record cartella` salva i fotogrammi del puntatore che scorre sulla barra.
+        if let i = CommandLine.arguments.firstIndex(of: "--record"), i + 1 < CommandLine.arguments.count {
+            let dir = CommandLine.arguments[i + 1]
+            mouseTimer?.invalidate()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+                MainActor.assumeIsolated { self?.recordSweep(to: dir) }
+            }
+        }
+    }
+
+    /// Fa scorrere un puntatore finto da un capo all'altro della barra e salva un PNG per fotogramma.
+    private func recordSweep(to dir: String) {
+        try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
+        let left = (panel.frame.width - barSize.width) / 2
+        let positions: [CGFloat?] = [nil, nil, nil, nil, nil, nil]
+            + (0..<150).map { step in left - 10 + (barSize.width + 20) * CGFloat(step) / 149 }
+            + Array(repeating: nil, count: 12)
+        var index = 0
+        Timer.scheduledTimer(withTimeInterval: 1.0 / 25, repeats: true) { [weak self] timer in
+            MainActor.assumeIsolated {
+                guard let self else { return timer.invalidate() }
+                if index > 0 {
+                    self.saveSnapshot(to: dir + String(format: "/frame-%03d.png", index - 1))
+                }
+                guard index < positions.count else {
+                    timer.invalidate()
+                    NSApp.terminate(nil)
+                    return
+                }
+                self.hover.pointerX = positions[index]
+                index += 1
+            }
+        }
     }
 
     private var screen: NSScreen? { NSScreen.screens.first }

@@ -6,15 +6,21 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
     @ObservedObject var settings: DockSettings
     @ObservedObject var apps: AppsModel
+    /// Scheda aperta all'avvio (usata dagli screenshot del README).
+    static var initialTab = 0
+    @State private var tab = SettingsView.initialTab
 
     var body: some View {
-        TabView {
+        TabView(selection: $tab) {
             GeneralTab(settings: settings)
                 .tabItem { Label("Generali", systemImage: "gearshape") }
+                .tag(0)
             WidgetsTab(settings: settings)
                 .tabItem { Label("Info di sistema", systemImage: "gauge.with.dots.needle.33percent") }
+                .tag(1)
             ItemsTab(settings: settings, apps: apps)
                 .tabItem { Label("App e cartelle", systemImage: "square.grid.2x2") }
+                .tag(2)
         }
         .frame(width: 520, height: 560)
     }

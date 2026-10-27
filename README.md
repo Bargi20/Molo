@@ -3,6 +3,8 @@
 **Un dock alternativo per macOS, con widget di sistema, Spotify e batterie delle cuffie.**
 *An alternative macOS Dock with system widgets, Spotify and headphone battery — docs in Italian.*
 
+![Molo in azione: l'ingrandimento a onda scorre su widget e app](docs/images/dock.gif)
+
 Molo prende il posto del Dock di Apple: tiene le tue app, le app aperte e il Cestino, e in più mostra a colpo d'occhio ora, CPU, RAM, batteria, rete, disco, il brano di Spotify e la carica delle AirPods. Ingrandimento "a onda" su icone e widget, rimbalzo all'avvio e animazioni come il Dock originale.
 
 ---
@@ -25,6 +27,8 @@ Molo prende il posto del Dock di Apple: tiene le tue app, le app aperte e il Ces
 
 ## Cosa fa
 
+![Il dock di Molo a riposo](docs/images/dock.png)
+
 **Widget (a sinistra)**
 | Riquadro | Cosa mostra | Al click apre |
 |---|---|---|
@@ -35,7 +39,9 @@ Molo prende il posto del Dock di Apple: tiene le tue app, le app aperte e il Ces
 | Dispositivi | AirPods (sinistra, destra, custodia), cuffie, mouse, tastiere Bluetooth | Impostazioni Bluetooth |
 | Rete | velocità di download e upload | Monitoraggio Attività |
 
-Passa il mouse su un riquadro per vedere i dettagli.
+Passa il mouse su un riquadro per vedere i dettagli. Anche i widget partecipano all'onda di ingrandimento:
+
+![Ingrandimento sui widget](docs/images/dock-widgets.png)
 
 **App (al centro e a destra)**
 - Al primo avvio importa quello che avevi nel Dock di Apple: le app fissate, nello stesso ordine, e le cartelle della parte destra (Download, Documenti…). Le app disinstallate vengono saltate.
@@ -45,6 +51,9 @@ Passa il mouse su un riquadro per vedere i dettagli.
 - **Trascina** dei file su un'icona per aprirli con quell'app, oppure sul Cestino per eliminarli.
 - **Tasto destro** su un'icona: rimuovi dal dock, mostra nel Finder, nascondi, esci, uscita forzata.
 - Se le icone non entrano nello schermo, si rimpiccioliscono da sole.
+- Al passaggio del mouse le icone si ingrandiscono "a onda", come nel Dock di Apple:
+
+![Ingrandimento a onda sulle app](docs/images/dock-wave.png)
 
 ---
 
@@ -148,6 +157,14 @@ Il ripristino dal menu di Molo rimette il Dock com'era prima (sempre visibile o 
 
 Tasto destro su una zona vuota del dock → **Impostazioni…**. Si aprono anche rilanciando Molo da Spotlight.
 
+<table>
+  <tr>
+    <td align="center"><img src="docs/images/settings-generali.png" width="260" alt="Impostazioni, scheda Generali"><br><sub>Generali</sub></td>
+    <td align="center"><img src="docs/images/settings-widget.png" width="260" alt="Impostazioni, scheda Info di sistema"><br><sub>Info di sistema</sub></td>
+    <td align="center"><img src="docs/images/settings-app.png" width="260" alt="Impostazioni, scheda App e cartelle"><br><sub>App e cartelle</sub></td>
+  </tr>
+</table>
+
 - **Generali**
   - dimensione delle icone (24–72 pt) e quanto si ingrandiscono al passaggio del mouse
   - nascondi automaticamente il dock
@@ -232,6 +249,16 @@ swift build                       # compila (debug)
 swift test                        # esegue i test
 .build/debug/Molo                 # avvia senza creare la .app
 ./scripts/build-app.sh            # crea build/Molo.app
+```
+
+### Rigenerare le immagini del README
+
+Le immagini in `docs/images` sono fatte da Molo stesso, senza bisogno di permessi di registrazione schermo:
+
+```bash
+.build/debug/Molo --record /tmp/molo-frames                   # fotogrammi del puntatore che scorre
+swift scripts/readme-media.swift /tmp/molo-frames docs/images  # dock.png, dock-wave.png, dock-widgets.png, dock.gif
+.build/debug/Molo --snapshot docs/images/settings-generali.png --settings 0   # 1 e 2 per le altre schede
 ```
 
 | File | Cosa contiene |
