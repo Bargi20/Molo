@@ -38,7 +38,7 @@ Molo prende il posto del Dock di Apple: tiene le tue app, le app aperte e il Ces
 Passa il mouse su un riquadro per vedere i dettagli.
 
 **App (al centro e a destra)**
-- Al primo avvio importa le app che avevi nel Dock di Apple.
+- Al primo avvio importa quello che avevi nel Dock di Apple: le app fissate, nello stesso ordine, e le cartelle della parte destra (Download, Documenti…). Le app disinstallate vengono saltate.
 - Dopo un separatore ci sono le app aperte non fissate. Il pallino sotto un'icona indica che l'app è aperta.
 - **Trascina** un'app o una cartella dal Finder sul dock per fissarla.
 - **Trascina** un'icona sopra un'altra per cambiare l'ordine.
@@ -229,6 +229,7 @@ Swift Package con SwiftUI + AppKit, nessuna dipendenza esterna.
 
 ```bash
 swift build                       # compila (debug)
+swift test                        # esegue i test
 .build/debug/Molo                 # avvia senza creare la .app
 ./scripts/build-app.sh            # crea build/Molo.app
 ```
@@ -243,6 +244,7 @@ swift build                       # compila (debug)
 | `DeviceBatteryMonitor.swift` | batterie Bluetooth e iPhone |
 | `AppsModel.swift` | app fissate e in esecuzione |
 | `SettingsView.swift` | finestra Impostazioni |
+| `Tests/MoloTests` | test dell'importazione dal Dock di Apple |
 
 ## Licenza
 

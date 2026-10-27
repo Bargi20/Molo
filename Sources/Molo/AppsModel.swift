@@ -58,12 +58,20 @@ final class AppsModel: ObservableObject {
         refresh()
     }
 
-    /// Legge le app fissate nel Dock di Apple (solo al primo avvio).
-    private static func importAppleDock() -> [String] {
-        guard let tiles = UserDefaults(suiteName: "com.apple.dock")?.array(forKey: "persistent-apps") as? [[String: Any]] else {
-            return []
+    /// Legge app e cartelle fissate nel Dock di Apple (solo al primo avvio).
+    nonisolated static func importAppleDock(from dock: UserDefaults? = UserDefaults(suiteName: "com.apple.dock")) -> [String] {
+        let apps = paths(in: dock?.array(forKey: "persistent-apps"))
+        // A destra del separatore ci sono cartelle (Download…), file e link web: si tengono solo le cartelle.
+        let folders = paths(in: dock?.array(forKey: "persistent-others")).filter { path in
+            var isDirectory: ObjCBool = false
+            return FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
+                && isDirectory.boolValue && !path.hasSuffix(".app")
         }
-        return tiles.compactMap { tile in
+        return apps + folders
+    }
+
+    private nonisolated static func paths(in tiles: [Any]?) -> [String] {
+        (tiles as? [[String: Any]] ?? []).compactMap { tile in
             guard let data = tile["tile-data"] as? [String: Any],
                   let file = data["file-data"] as? [String: Any],
                   let string = file["_CFURLString"] as? String else { return nil }
