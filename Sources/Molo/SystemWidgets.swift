@@ -211,6 +211,10 @@ struct RingTile: View {
     let action: () -> Void
     @Environment(\.widgetScale) private var k
 
+    /// L'anello avanza a scatti del 5%: ogni animazione ridisegna tutto il dock,
+    /// e CPU e RAM cambiano di poco a ogni lettura.
+    private var ringValue: Double { (min(1, max(0, value)) * 20).rounded() / 20 }
+
     var body: some View {
         WidgetTile(detail: detail, height: height, action: action) {
             VStack(spacing: 2) {
@@ -218,10 +222,10 @@ struct RingTile: View {
                     Circle()
                         .stroke(Color.primary.opacity(0.15), lineWidth: 3.5 * k)
                     Circle()
-                        .trim(from: 0, to: max(0.001, min(1, value)))
+                        .trim(from: 0, to: max(0.001, ringValue))
                         .stroke(color, style: StrokeStyle(lineWidth: 3.5 * k, lineCap: .round))
                         .rotationEffect(.degrees(-90))
-                        .animation(.easeOut(duration: 0.6), value: value)
+                        .animation(.easeOut(duration: 0.4), value: ringValue)
                     Text("\(Int((value * 100).rounded()))")
                         .font(.system(size: 10 * k, weight: .bold, design: .rounded))
                         .monospacedDigit()

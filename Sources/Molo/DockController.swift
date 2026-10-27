@@ -49,6 +49,7 @@ final class DockController {
     private var hideDeadline: Date?
     private var menuOpen = false
     private var mouseTimer: Timer?
+    private var fastTracking = true
     private var fitWork: DispatchWorkItem?
     private var cancellables = Set<AnyCancellable>()
 
@@ -137,10 +138,7 @@ final class DockController {
             .store(in: &cancellables)
 
         // Poll del mouse: decide se la finestra deve ricevere click e gestisce l'auto-nascondi.
-        mouseTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.trackMouse() }
-        }
-        RunLoop.main.add(mouseTimer!, forMode: .common)
+        scheduleMouseTimer(fast: true)
 
         // Debug: `Molo --record cartella` salva i fotogrammi del puntatore che scorre sulla barra.
         if let i = CommandLine.arguments.firstIndex(of: "--record"), i + 1 < CommandLine.arguments.count {
@@ -274,6 +272,30 @@ final class DockController {
         let frame = targetFrame(hidden: false)
         return NSRect(x: frame.midX - barSize.width / 2, y: frame.minY,
                       width: barSize.width, height: barSize.height)
+    }
+
+    /// 60 volte al secondo vicino al dock, 10 quando il puntatore è lontano: consuma meno batteria.
+    private func scheduleMouseTimer(fast: Bool) {
+        mouseTimer?.invalidate()
+        let timer = Timer(timeInterval: fast ? 1.0 / 60 : 1.0 / 10, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.trackMouse()
+                let fast = self.needsFastTracking
+                if fast != self.fastTracking { self.scheduleMouseTimer(fast: fast) }
+            }
+        }
+        timer.tolerance = fast ? 0 : 0.02
+        RunLoop.main.add(timer, forMode: .common)
+        mouseTimer = timer
+        fastTracking = fast
+    }
+
+    /// Il puntatore è nella fascia in basso dello schermo, o c'è un'animazione del dock in corso.
+    private var needsFastTracking: Bool {
+        if hover.pointerX != nil || hideDeadline != nil { return true }
+        guard let screen else { return true }
+        return NSEvent.mouseLocation.y <= max(barRect.maxY, screen.frame.minY) + 150
     }
 
     private func trackMouse() {
