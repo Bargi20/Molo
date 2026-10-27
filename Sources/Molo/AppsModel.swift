@@ -150,11 +150,18 @@ final class AppsModel: ObservableObject {
         if item.isFolder, let url = item.url {
             NSWorkspace.shared.open(url)
         } else if let url = item.url {
-            if !item.isRunning, let id = item.bundleID { launching.insert(id) }
+            if !item.isRunning, let id = item.bundleID {
+                launching.insert(id)
+                // Rete di sicurezza: il rimbalzo non dura mai più di 10 secondi.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in self?.launching.remove(id) }
+            }
             let config = NSWorkspace.OpenConfiguration()
             config.activates = true
-            NSWorkspace.shared.openApplication(at: url, configuration: config) { [weak self] _, error in
-                guard error != nil, let id = item.bundleID else { return }
+            NSWorkspace.shared.openApplication(at: url, configuration: config) { [weak self] app, error in
+                guard let id = item.bundleID else { return }
+                // Errore, oppure app che non compare nel dock (es. Apps di macOS): niente notifica di avvio da aspettare.
+                let stop = error != nil || app?.activationPolicy != .regular
+                guard stop else { return }
                 DispatchQueue.main.async { self?.launching.remove(id) }
             }
         } else {
