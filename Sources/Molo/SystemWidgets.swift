@@ -264,8 +264,8 @@ struct SpotifyTile: View {
                 .id(spotify.title)
                 .transition(.opacity)
 
-                VStack(alignment: .leading, spacing: 1) {
-                    HStack(spacing: 4) {
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(spacing: 4 * k) {
                         Text(spotify.title)
                             .font(.system(size: 11 * k, weight: .semibold))
                             .lineLimit(1)
@@ -275,12 +275,19 @@ struct SpotifyTile: View {
                         .font(.system(size: 9.5 * k))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
-                    HStack(spacing: 10 * k) {
-                        MediaButton(symbol: "backward.fill", action: spotify.previous)
-                        MediaButton(symbol: spotify.isPlaying ? "pause.fill" : "play.fill", action: spotify.playPause)
-                        MediaButton(symbol: "forward.fill", action: spotify.next)
+                    if spotify.needsPermission {
+                        Button("Consenti controllo", action: spotify.openAutomationSettings)
+                            .buttonStyle(.link)
+                            .font(.system(size: 9.5 * k, weight: .semibold))
+                            .help("Impostazioni di Sistema → Privacy e sicurezza → Automazione → Molo → Spotify")
+                    } else {
+                        HStack(spacing: 0) {
+                            MediaButton(symbol: "backward.fill", action: spotify.previous)
+                            MediaButton(symbol: spotify.isPlaying ? "pause.fill" : "play.fill", action: spotify.playPause)
+                            MediaButton(symbol: "forward.fill", action: spotify.next)
+                        }
+                        .padding(.leading, -6 * k)
                     }
-                    .padding(.top, 2 * k)
                 }
                 .frame(width: 104 * k, alignment: .leading)
             }
@@ -289,29 +296,39 @@ struct SpotifyTile: View {
     }
 }
 
+/// Pulsante ⏮ ⏯ ⏭: è un Button vero, così ha la precedenza sul click del riquadro (che apre Spotify),
+/// e l'area cliccabile è più grande del simbolo per non mancarlo.
 private struct MediaButton: View {
     let symbol: String
     let action: () -> Void
     @Environment(\.widgetScale) private var k
     @State private var hovering = false
-    @State private var pressed = false
 
     var body: some View {
-        Image(systemName: symbol)
-            .font(.system(size: 10 * k, weight: .bold))
-            .contentTransition(.symbolEffect(.replace))
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 11 * k, weight: .bold))
+                .contentTransition(.symbolEffect(.replace))
+                .frame(width: max(22, 24 * k), height: max(16, 18 * k))
+                .background(
+                    Capsule().fill(Color.primary.opacity(hovering ? 0.12 : 0))
+                )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(MediaButtonStyle(hovering: hovering))
+        .onHover { hovering = $0 }
+    }
+}
+
+private struct MediaButtonStyle: ButtonStyle {
+    let hovering: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
             .foregroundStyle(hovering ? Color.primary : Color.primary.opacity(0.7))
-            .scaleEffect(pressed ? 0.75 : (hovering ? 1.2 : 1))
-            .animation(.spring(response: 0.25, dampingFraction: 0.5), value: hovering)
-            .animation(.spring(response: 0.2, dampingFraction: 0.5), value: pressed)
-            .frame(width: 14 * k, height: 12 * k)
-            .contentShape(Rectangle())
-            .onHover { hovering = $0 }
-            .onTapGesture {
-                pressed = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { pressed = false }
-                action()
-            }
+            .scaleEffect(configuration.isPressed ? 0.8 : (hovering ? 1.12 : 1))
+            .animation(.spring(response: 0.2, dampingFraction: 0.5), value: configuration.isPressed)
+            .animation(.spring(response: 0.25, dampingFraction: 0.6), value: hovering)
     }
 }
 

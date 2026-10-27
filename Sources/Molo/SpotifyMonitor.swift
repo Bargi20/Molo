@@ -9,6 +9,8 @@ final class SpotifyMonitor: ObservableObject {
     @Published private(set) var title = ""
     @Published private(set) var artist = ""
     @Published private(set) var artwork: NSImage?
+    /// macOS non ha dato a Molo il permesso di controllare Spotify (Automazione).
+    @Published private(set) var needsPermission = false
 
     var hasTrack: Bool { isRunning && !title.isEmpty }
 
@@ -117,9 +119,30 @@ final class SpotifyMonitor: ObservableObject {
             var error: NSDictionary?
             let result = NSAppleScript(source: source)?.executeAndReturnError(&error).stringValue
             if let error { NSLog("Molo: AppleScript Spotify: \(error)") }
+            // -1743: l'utente non ha autorizzato Molo in Privacy e sicurezza → Automazione.
+            let denied = (error?[NSAppleScript.errorNumber] as? Int) == -1743
             DispatchQueue.main.async {
-                MainActor.assumeIsolated { completion?(result) }
+                MainActor.assumeIsolated {
+                    if self.needsPermission != denied { self.needsPermission = denied }
+                    completion?(result)
+                }
             }
+        }
+    }
+
+    func openAutomationSettings() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation") else { return }
+        NSWorkspace.shared.open(url)
+    }
+
+    /// Debug: prova un comando e riporta risultato o errore.
+    func diagnose(completion: @escaping @MainActor (String) -> Void) {
+        scriptQueue.async {
+            var error: NSDictionary?
+            let result = NSAppleScript(source: "tell application \"Spotify\" to return player state as string")?
+                .executeAndReturnError(&error).stringValue
+            let report = error.map { "error: \($0)" } ?? "ok: \(result ?? "nil")"
+            DispatchQueue.main.async { MainActor.assumeIsolated { completion(report) } }
         }
     }
 }

@@ -86,6 +86,15 @@ final class DockController {
             .sink { [weak self] _ in MainActor.assumeIsolated { self?.settings.fitScale = 1 } }
             .store(in: &cancellables)
 
+        // Debug: `Molo --spotify-test file.txt` prova a comandare Spotify, scrive l'esito ed esce.
+        if let i = CommandLine.arguments.firstIndex(of: "--spotify-test"), i + 1 < CommandLine.arguments.count {
+            let path = CommandLine.arguments[i + 1]
+            spotify.diagnose { report in
+                try? report.write(toFile: path, atomically: true, encoding: .utf8)
+                NSApp.terminate(nil)
+            }
+        }
+
         // Debug: `Molo --snapshot file.png` salva un'immagine della finestra ed esce.
         if let i = CommandLine.arguments.firstIndex(of: "--snapshot"), i + 1 < CommandLine.arguments.count {
             let path = CommandLine.arguments[i + 1]
