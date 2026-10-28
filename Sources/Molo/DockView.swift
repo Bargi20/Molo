@@ -245,16 +245,7 @@ struct AppIconView: View {
                 .frame(width: size * scale, height: size * scale)
                 .brightness(pressed ? -0.3 : (dropTargeted ? 0.15 : 0))
                 .scaleEffect(dropTargeted ? 1.12 : 1, anchor: .bottom)
-                .keyframeAnimator(initialValue: CGFloat(0), repeating: isLaunching) { content, y in
-                    content.offset(y: y)
-                } keyframes: { _ in
-                    // Rimbalzo d'avvio: su veloce, giù con un piccolo assestamento.
-                    KeyframeTrack {
-                        CubicKeyframe(-size * 0.55, duration: 0.28)
-                        CubicKeyframe(0, duration: 0.26)
-                        SpringKeyframe(0, duration: 0.18, spring: .bouncy)
-                    }
-                }
+                .modifier(LaunchBounce(active: isLaunching, height: size * 0.55))
             Circle()
                 .fill(Color.primary.opacity(item.isRunning ? 0.75 : 0))
                 .frame(width: 4, height: 4)
@@ -312,6 +303,30 @@ struct AppIconView: View {
                 Button("Esci") { apps.quit(item) }
                 Button("Uscita forzata") { apps.forceQuit(item) }
             }
+        }
+    }
+}
+
+/// Rimbalzo d'avvio: su veloce, giù con un piccolo assestamento.
+/// Il modificatore esiste solo durante l'avvio: con `repeating` che passa a false
+/// l'animazione si fermerebbe a mezz'aria, lasciando l'icona sollevata.
+private struct LaunchBounce: ViewModifier {
+    let active: Bool
+    let height: CGFloat
+
+    func body(content: Content) -> some View {
+        if active {
+            content.keyframeAnimator(initialValue: CGFloat(0), repeating: true) { content, y in
+                content.offset(y: y)
+            } keyframes: { _ in
+                KeyframeTrack {
+                    CubicKeyframe(-height, duration: 0.28)
+                    CubicKeyframe(0, duration: 0.26)
+                    SpringKeyframe(0, duration: 0.18, spring: .bouncy)
+                }
+            }
+        } else {
+            content
         }
     }
 }
