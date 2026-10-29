@@ -5,7 +5,7 @@
 
 ![Molo in azione: l'ingrandimento a onda scorre su widget e app](docs/images/dock.gif)
 
-Molo prende il posto del Dock di Apple: tiene le tue app, le app aperte e il Cestino, e in più mostra a colpo d'occhio ora, CPU, RAM, batteria, rete, disco, il brano di Spotify e la carica delle AirPods. Ingrandimento "a onda" su icone e widget, rimbalzo all'avvio e animazioni come il Dock originale.
+Molo prende il posto del Dock di Apple: tiene le tue app, le app aperte e il Cestino, e in più mostra a colpo d'occhio ora, CPU, RAM, batteria, rete, disco, il brano di Spotify e la carica delle AirPods. Ingrandimento "a onda" su icone e widget, anteprime delle finestre, rimbalzo all'avvio e animazioni come il Dock originale.
 
 ---
 
@@ -50,6 +50,7 @@ Passa il mouse su un riquadro per vedere i dettagli. Anche i widget partecipano 
 - **Trascina** un'icona sopra un'altra per cambiare l'ordine.
 - **Trascina** dei file su un'icona per aprirli con quell'app, oppure sul Cestino per eliminarli.
 - **Tasto destro** su un'icona: rimuovi dal dock, mostra nel Finder, nascondi, esci, uscita forzata.
+- **Anteprime delle finestre**: tieni il mouse fermo su un'app aperta e sopra l'icona compaiono le miniature delle sue finestre. Clicca una miniatura per portare davanti quella finestra. Spostandoti su un'altra icona l'anteprima cambia subito. Servono i permessi di Registrazione schermo e Accessibilità (vedi [Permessi](#permessi-richiesti)).
 - Se le icone non entrano nello schermo, si rimpiccioliscono da sole.
 - Al passaggio del mouse le icone si ingrandiscono "a onda", come nel Dock di Apple:
 
@@ -169,6 +170,7 @@ Tasto destro su una zona vuota del dock → **Impostazioni…**. Si aprono anche
   - dimensione delle icone (24–72 pt) e quanto si ingrandiscono al passaggio del mouse
   - nascondi automaticamente il dock
   - mostra le app aperte e il Cestino
+  - anteprime delle finestre, con lo stato dei due permessi e un pulsante per attivarli
   - apri al login, nascondi o ripristina il Dock di Apple, esci
 - **Info di sistema**: scegli quali riquadri mostrare.
 - **App e cartelle**: riordina, rimuovi, aggiungi app o cartelle. C'è anche un pulsante rapido per Download, Documenti e Scrivania.
@@ -180,9 +182,13 @@ Tasto destro su una zona vuota del dock → **Impostazioni…**. Si aprono anche
 | Quando | Richiesta | Perché |
 |---|---|---|
 | Primo avvio con Spotify aperto | "Molo vuole controllare Spotify" | Leggere la copertina e usare ⏮ ⏯ ⏭. Se rifiuti, il widget mostra comunque titolo e artista. |
+| Primo passaggio su un'app aperta | Registrazione schermo | Fare le miniature delle finestre nelle anteprime. Molo non registra niente: cattura solo le finestre dell'app sotto il mouse, nel momento in cui compare l'anteprima. |
+| Primo clic su una miniatura | Accessibilità | Portare davanti solo la finestra scelta. Senza, Molo porta davanti l'app con tutte le sue finestre. |
 | "Apri al login" | (nessuna finestra, compare in Impostazioni di Sistema → Generali → Elementi login) | Avviare Molo all'accensione. |
 
 Se hai rifiutato per sbaglio il permesso di Spotify, riattivalo da **Impostazioni di Sistema → Privacy e sicurezza → Automazione → Molo → Spotify**.
+
+Registrazione schermo e Accessibilità si attivano in **Impostazioni di Sistema → Privacy e sicurezza**, oppure da **Impostazioni di Molo → Generali → Anteprime**. Dopo averli attivati, esci da Molo e riaprilo. Se non vuoi dare questi permessi, spegni le anteprime nella stessa sezione.
 
 ---
 
@@ -227,6 +233,9 @@ Compare solo quando Spotify è aperto e c'è un brano caricato. Controlla anche 
 **Le AirPods non compaiono.**
 Il riquadro appare solo quando sono collegate al Mac. Si aggiorna ogni 20 secondi.
 
+**Le anteprime non compaiono.**
+Compaiono solo per le app aperte con almeno una finestra visibile nella Scrivania attuale (le finestre ridotte a icona non hanno miniatura). Controlla in **Impostazioni → Generali → Anteprime** che Registrazione schermo risulti "Attivo", poi riavvia Molo.
+
 **`xcrun: error: invalid active developer path`**
 Mancano gli strumenti di Xcode: esegui `xcode-select --install`.
 
@@ -234,7 +243,8 @@ Mancano gli strumenti di Xcode: esegui `xcode-select --install`.
 
 ## Limiti noti
 
-- Niente badge delle notifiche e niente anteprime delle finestre: richiederebbero permessi di Accessibilità e Registrazione schermo.
+- Niente badge delle notifiche.
+- Le anteprime mostrano solo le finestre visibili nella Scrivania attuale, non quelle ridotte a icona o in altre Scrivanie.
 - Il dock compare solo sullo schermo principale.
 - Il Dock di Apple resta attivo in background: Molo lo nasconde, non lo sostituisce a livello di sistema.
 
@@ -270,6 +280,7 @@ swift scripts/readme-media.swift /tmp/molo-frames docs/images  # dock.png, dock-
 | `SpotifyMonitor.swift` | brano di Spotify e comandi |
 | `DeviceBatteryMonitor.swift` | batterie Bluetooth e iPhone |
 | `AppsModel.swift` | app fissate e in esecuzione |
+| `WindowPreviews.swift` | anteprime delle finestre |
 | `SettingsView.swift` | finestra Impostazioni |
 | `Tests/MoloTests` | test dell'importazione dal Dock di Apple |
 

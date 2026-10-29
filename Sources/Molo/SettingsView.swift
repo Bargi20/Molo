@@ -22,7 +22,7 @@ struct SettingsView: View {
                 .tabItem { Label("App e cartelle", systemImage: "square.grid.2x2") }
                 .tag(2)
         }
-        .frame(width: 520, height: 560)
+        .frame(width: 520, height: 660)
     }
 }
 
@@ -62,6 +62,25 @@ private struct GeneralTab: View {
                 Toggle("Mostra il Cestino", isOn: $settings.showTrash)
             }
 
+            Section {
+                Toggle("Anteprime delle finestre al passaggio del mouse", isOn: $settings.showWindowPreviews)
+                LabeledContent("Registrazione schermo") {
+                    PermissionButton(granted: CGPreflightScreenCaptureAccess(),
+                                     pane: "Privacy_ScreenCapture") { CGRequestScreenCaptureAccess() }
+                }
+                LabeledContent("Accessibilità") {
+                    PermissionButton(granted: AXIsProcessTrusted(), pane: "Privacy_Accessibility") {
+                        AXIsProcessTrustedWithOptions(["AXTrustedCheckOptionPrompt": true] as CFDictionary)
+                    }
+                }
+            } header: {
+                Text("Anteprime")
+            } footer: {
+                Text("La Registrazione schermo serve per le miniature, l'Accessibilità per portare davanti solo la finestra scelta. Dopo averli attivati, riavvia Molo.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Sistema") {
                 Toggle("Apri Molo al login", isOn: Binding(
                     get: { settings.launchAtLogin },
@@ -80,6 +99,27 @@ private struct GeneralTab: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+/// Stato di un permesso di sistema: "Attivo", oppure un pulsante che lo chiede.
+private struct PermissionButton: View {
+    let granted: Bool
+    let pane: String
+    let request: () -> Bool
+
+    var body: some View {
+        if granted {
+            Label("Attivo", systemImage: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+        } else {
+            Button("Consenti…") {
+                // La prima volta macOS mostra la richiesta; dopo bisogna attivarlo a mano nelle Impostazioni.
+                if !request() {
+                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?\(pane)")!)
+                }
+            }
+        }
     }
 }
 

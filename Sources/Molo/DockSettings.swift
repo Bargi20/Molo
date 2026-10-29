@@ -61,6 +61,9 @@ final class DockSettings: ObservableObject {
     @Published var showTrash: Bool {
         didSet { defaults.set(showTrash, forKey: "showTrash") }
     }
+    @Published var showWindowPreviews: Bool {
+        didSet { defaults.set(showWindowPreviews, forKey: "showWindowPreviews") }
+    }
     /// Riduzione automatica quando la barra non sta nello schermo (1 = nessuna).
     @Published var fitScale: Double = 1
 
@@ -78,6 +81,7 @@ final class DockSettings: ObservableObject {
             "enabledWidgets": DockWidget.allCases.map(\.rawValue),
             "showRunningApps": true,
             "showTrash": true,
+            "showWindowPreviews": true,
         ])
         autoHide = defaults.bool(forKey: "autoHide")
         showWidgets = defaults.bool(forKey: "showWidgets")
@@ -86,6 +90,7 @@ final class DockSettings: ObservableObject {
         enabledWidgets = Set((defaults.stringArray(forKey: "enabledWidgets") ?? []).compactMap(DockWidget.init))
         showRunningApps = defaults.bool(forKey: "showRunningApps")
         showTrash = defaults.bool(forKey: "showTrash")
+        showWindowPreviews = defaults.bool(forKey: "showWindowPreviews")
     }
 
     func isEnabled(_ widget: DockWidget) -> Bool { enabledWidgets.contains(widget) }

@@ -42,6 +42,7 @@ final class DockController {
     let spotify = SpotifyMonitor()
     let devices = DeviceBatteryMonitor()
     let hover = DockHover()
+    let previews = WindowPreviewController()
 
     private let panel = DockPanel()
     private var barSize = CGSize(width: 600, height: 70)
@@ -57,6 +58,15 @@ final class DockController {
         let root = DockRootView(apps: apps, system: system, spotify: spotify, devices: devices,
                                 settings: settings, hover: hover) { [weak self] size in
             self?.barSizeChanged(size)
+        }
+        hover.previews = previews
+        hover.screenX = { [weak self] x in (self?.panel.frame.minX ?? 0) + x }
+        previews.isEnabled = { [weak self] in self?.settings.showWindowPreviews ?? false }
+        previews.panelBottomY = { [weak self] in
+            guard let self else { return 0 }
+            // Sopra l'icona ingrandita e la sua etichetta.
+            let magnified = self.settings.effectiveIconSize * CGFloat(self.settings.magnification - 1)
+            return self.barRect.maxY + magnified + 18
         }
         let hosting = NSHostingView(rootView: root)
         hosting.sizingOptions = []
@@ -93,6 +103,26 @@ final class DockController {
             spotify.diagnose { report in
                 try? report.write(toFile: path, atomically: true, encoding: .utf8)
                 NSApp.terminate(nil)
+            }
+        }
+
+        // Debug: `Molo --preview-snapshot file.png [NomeApp]` apre l'anteprima di un'app aperta, la salva ed esce.
+        if let i = CommandLine.arguments.firstIndex(of: "--preview-snapshot"), i + 1 < CommandLine.arguments.count {
+            let path = CommandLine.arguments[i + 1]
+            let name = i + 2 < CommandLine.arguments.count ? CommandLine.arguments[i + 2] : nil
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+                MainActor.assumeIsolated {
+                    guard let self else { return }
+                    let item = (self.apps.pinned + self.apps.running)
+                        .first { $0.isRunning && (name == nil || $0.name == name) }
+                    self.previews.hover(item, x: self.panel.frame.midX)
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in
+                MainActor.assumeIsolated {
+                    self?.previews.snapshot(to: path)
+                    NSApp.terminate(nil)
+                }
             }
         }
 
@@ -181,7 +211,7 @@ final class DockController {
 
     func showSettings() {
         if settingsWindow == nil {
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 560),
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 660),
                                   styleMask: [.titled, .closable, .miniaturizable],
                                   backing: .buffered, defer: false)
             window.title = "Impostazioni di Molo"
@@ -263,6 +293,7 @@ final class DockController {
 
     private func setHidden(_ hidden: Bool) {
         guard hidden != isHidden else { return }
+        if hidden { previews.dismiss() }
         isHidden = hidden
         layout(animated: true)
     }
@@ -310,6 +341,7 @@ final class DockController {
         if panel.ignoresMouseEvents == overBar {
             panel.ignoresMouseEvents = !overBar
         }
+        previews.mouseMoved(mouse, overDock: overBar)
 
         let pointer = overBar ? mouse.x - panel.frame.minX : nil
         if pointer == nil || hover.pointerX == nil || abs(pointer! - hover.pointerX!) >= 0.5 {
@@ -323,7 +355,7 @@ final class DockController {
             if atBottomEdge { setHidden(false) }
         } else {
             let near = barRect.insetBy(dx: -20, dy: -30).contains(mouse)
-            if near || menuOpen || NSEvent.pressedMouseButtons != 0 {
+            if near || menuOpen || previews.isVisible || NSEvent.pressedMouseButtons != 0 {
                 hideDeadline = nil
             } else if let deadline = hideDeadline {
                 if Date() >= deadline {

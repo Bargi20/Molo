@@ -30,7 +30,9 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
-codesign --force --sign - "$APP" >/dev/null
+# Firma ad-hoc con un requisito fisso: così macOS riconosce Molo anche dopo un aggiornamento
+# e non chiede di nuovo Registrazione schermo e Accessibilità.
+codesign --force --sign - -r='designated => identifier "local.molo.dock"' "$APP" >/dev/null
 echo "Creata $APP"
 
 if [[ "${1:-}" == "--install" ]]; then

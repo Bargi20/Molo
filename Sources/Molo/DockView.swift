@@ -6,6 +6,15 @@ import UniformTypeIdentifiers
 @MainActor
 final class DockHover: ObservableObject {
     @Published var pointerX: CGFloat?
+    /// Impostato dal controller: anteprime delle finestre al passaggio sulle icone.
+    var previews: WindowPreviewController?
+    /// Converte una x della finestra del dock in coordinate schermo.
+    var screenX: (CGFloat) -> CGFloat = { $0 }
+}
+
+/// Riferimento mutabile: aggiornarlo non ridisegna la vista (serve durante l'onda, a ogni fotogramma).
+final class FrameBox {
+    var midX: CGFloat = 0
 }
 
 /// Contenuto della finestra: spazio trasparente in alto, barra in basso al centro.
@@ -57,7 +66,7 @@ struct DockBar: View {
             }
             HStack(alignment: .bottom, spacing: 0) {
                 ForEach(apps.pinned) { item in
-                    AppIconView(item: item, apps: apps, size: iconSize, padding: iconPadding,
+                    AppIconView(item: item, apps: apps, hover: hover, size: iconSize, padding: iconPadding,
                                 scale: wave.scales[item.id] ?? 1)
                         .transition(.scale(scale: 0.2, anchor: .bottom).combined(with: .opacity))
                 }
@@ -65,7 +74,7 @@ struct DockBar: View {
                     DockSeparator(height: iconSize, padding: Self.separatorPadding)
                         .padding(.bottom, 7)
                     ForEach(apps.running) { item in
-                        AppIconView(item: item, apps: apps, size: iconSize, padding: iconPadding,
+                        AppIconView(item: item, apps: apps, hover: hover, size: iconSize, padding: iconPadding,
                                     scale: wave.scales[item.id] ?? 1)
                             .transition(.scale(scale: 0.2, anchor: .bottom).combined(with: .opacity))
                     }
@@ -225,6 +234,8 @@ private func cellHeight(_ size: CGFloat) -> CGFloat { size + 7 }
 struct AppIconView: View {
     let item: DockApp
     @ObservedObject var apps: AppsModel
+    /// Non osservato: la posizione del puntatore cambia a ogni fotogramma.
+    let hover: DockHover
     let size: CGFloat
     let padding: CGFloat
     let scale: CGFloat
@@ -232,6 +243,7 @@ struct AppIconView: View {
     @State private var hovering = false
     @State private var dropTargeted = false
     @State private var pressed = false
+    @State private var frame = FrameBox()
 
     private var isLaunching: Bool {
         item.bundleID.map(apps.launching.contains) ?? false
@@ -264,8 +276,13 @@ struct AppIconView: View {
         .animation(.spring(response: 0.25, dampingFraction: 0.75), value: hovering)
         .animation(.spring(response: 0.25, dampingFraction: 0.6), value: dropTargeted)
         .animation(.easeOut(duration: 0.1), value: pressed)
-        .onHover { hovering = $0 }
+        .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX } action: { frame.midX = $0 }
+        .onHover { inside in
+            hovering = inside
+            hover.previews?.hover(inside ? item : nil, x: hover.screenX(frame.midX))
+        }
         .onTapGesture {
+            hover.previews?.dismiss()
             pressed = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { pressed = false }
             apps.open(item)
