@@ -99,6 +99,8 @@ Il Dock di Apple fa parte di macOS e **non si può disinstallare**. Quello che s
 
 Scegli **uno** di questi metodi.
 
+> **Alternativa: tenere il Dock di Apple.** In **Impostazioni → Generali → Modalità** attiva **Widget accanto al Dock di Apple**: Molo rimette visibile il Dock di sistema e mostra solo i widget, in due pillole ai suoi lati (ora e Spotify a sinistra, info di sistema a destra). Così restano tutte le funzioni del Dock di Apple: badge, schermo intero, spazio riservato sotto le finestre. Spegnendo l'opzione, il Dock di Apple torna nascosto.
+
 ### Metodo 1: dal menu di Molo (il più semplice)
 
 1. Fai **clic con il tasto destro** su una zona vuota del dock di Molo (non sopra un'icona).
@@ -167,6 +169,7 @@ Tasto destro su una zona vuota del dock → **Impostazioni…**. Si aprono anche
 </table>
 
 - **Generali**
+  - modalità "Widget accanto al Dock di Apple"
   - dimensione delle icone (24–72 pt) e quanto si ingrandiscono al passaggio del mouse
   - nascondi automaticamente il dock
   - mostra le app aperte e il Cestino
@@ -224,8 +227,8 @@ Non hai ancora nascosto il Dock di Apple: vedi [Togliere il Dock di Apple](#togl
 **Il dock è troppo grande o troppo piccolo.**
 Apri **Impostazioni → Generali → Dimensione icone**. Se ci sono tanti widget, prova a toglierne qualcuno in **Info di sistema**.
 
-**Le finestre a schermo intero finiscono sotto il dock.**
-Attiva **Nascondi automaticamente**: il dock scompare e ricompare quando porti il mouse sul bordo inferiore dello schermo.
+**Le finestre ingrandite finiscono sotto il dock.**
+Con le app a schermo intero Molo si nasconde da solo e ricompare quando porti il mouse sul bordo inferiore dello schermo. Le finestre solo ingrandite invece arrivano fino in fondo, perché macOS riserva quello spazio solo al Dock di Apple: attiva **Nascondi automaticamente** per avere lo stesso comportamento sempre.
 
 **Il widget di Spotify non compare.**
 Compare solo quando Spotify è aperto e c'è un brano caricato. Controlla anche il permesso in Automazione (vedi [Permessi](#permessi-richiesti)).
@@ -246,6 +249,7 @@ Mancano gli strumenti di Xcode: esegui `xcode-select --install`.
 - Niente badge delle notifiche.
 - Le anteprime mostrano solo le finestre visibili nella Scrivania attuale, non quelle ridotte a icona o in altre Scrivanie.
 - Il dock compare solo sullo schermo principale.
+- macOS non lascia spazio libero sotto le finestre per il dock di Molo, come fa invece per il Dock di Apple.
 - Il Dock di Apple resta attivo in background: Molo lo nasconde, non lo sostituisce a livello di sistema.
 
 ---
@@ -281,6 +285,7 @@ swift scripts/readme-media.swift /tmp/molo-frames docs/images  # dock.png, dock-
 | `DeviceBatteryMonitor.swift` | batterie Bluetooth e iPhone |
 | `AppsModel.swift` | app fissate e in esecuzione |
 | `WindowPreviews.swift` | anteprime delle finestre |
+| `BesideDock.swift` | widget ai lati del Dock di Apple |
 | `SettingsView.swift` | finestra Impostazioni |
 | `Tests/MoloTests` | test dell'importazione dal Dock di Apple |
 

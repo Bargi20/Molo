@@ -56,6 +56,16 @@ private struct GeneralTab: View {
                 }
             }
 
+            Section {
+                Toggle("Widget accanto al Dock di Apple", isOn: $settings.besideAppleDock)
+            } header: {
+                Text("Modalità")
+            } footer: {
+                Text("Molo mostra solo i widget, ai lati del Dock di Apple, che torna visibile. Le altre opzioni del dock valgono quando è spenta.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Comportamento") {
                 Toggle("Nascondi e mostra automaticamente il dock", isOn: $settings.autoHide)
                 Toggle("Mostra le app aperte non fissate", isOn: $settings.showRunningApps)

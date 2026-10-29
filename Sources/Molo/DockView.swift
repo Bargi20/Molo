@@ -186,6 +186,7 @@ struct DockMenu: View {
     var body: some View {
         Button("Impostazioni…") { settings.openSettings() }
         Divider()
+        Toggle("Widget accanto al Dock di Apple", isOn: $settings.besideAppleDock)
         Toggle("Nascondi automaticamente", isOn: $settings.autoHide)
         Toggle("Mostra info di sistema", isOn: $settings.showWidgets)
         Menu("Dimensione icone") {

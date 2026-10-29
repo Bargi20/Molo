@@ -64,6 +64,10 @@ final class DockSettings: ObservableObject {
     @Published var showWindowPreviews: Bool {
         didSet { defaults.set(showWindowPreviews, forKey: "showWindowPreviews") }
     }
+    /// Solo i widget, ai lati del Dock di Apple (che resta visibile) al posto del dock di Molo.
+    @Published var besideAppleDock: Bool {
+        didSet { defaults.set(besideAppleDock, forKey: "besideAppleDock") }
+    }
     /// Riduzione automatica quando la barra non sta nello schermo (1 = nessuna).
     @Published var fitScale: Double = 1
 
@@ -82,6 +86,7 @@ final class DockSettings: ObservableObject {
             "showRunningApps": true,
             "showTrash": true,
             "showWindowPreviews": true,
+            "besideAppleDock": false,
         ])
         autoHide = defaults.bool(forKey: "autoHide")
         showWidgets = defaults.bool(forKey: "showWidgets")
@@ -91,6 +96,7 @@ final class DockSettings: ObservableObject {
         showRunningApps = defaults.bool(forKey: "showRunningApps")
         showTrash = defaults.bool(forKey: "showTrash")
         showWindowPreviews = defaults.bool(forKey: "showWindowPreviews")
+        besideAppleDock = defaults.bool(forKey: "besideAppleDock")
     }
 
     func isEnabled(_ widget: DockWidget) -> Bool { enabledWidgets.contains(widget) }

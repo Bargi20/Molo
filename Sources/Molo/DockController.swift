@@ -3,6 +3,7 @@ import SwiftUI
 import Combine
 
 /// Finestra del dock: senza bordi, trasparente, al livello del Dock, su tutti gli Spazi.
+/// `.transient`: Mission Control la nasconde, come fa con il Dock di Apple.
 final class DockPanel: NSPanel {
     init() {
         super.init(contentRect: NSRect(x: 0, y: 0, width: 800, height: 160),
@@ -13,7 +14,7 @@ final class DockPanel: NSPanel {
         backgroundColor = .clear
         hasShadow = false
         level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.dockWindow)))
-        collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
+        collectionBehavior = [.canJoinAllSpaces, .transient, .ignoresCycle, .fullScreenAuxiliary]
         isMovable = false
         hidesOnDeactivate = false
         becomesKeyOnlyIfNeeded = true
@@ -43,11 +44,14 @@ final class DockController {
     let devices = DeviceBatteryMonitor()
     let hover = DockHover()
     let previews = WindowPreviewController()
+    let beside = BesideDockController()
 
     private let panel = DockPanel()
     private var barSize = CGSize(width: 600, height: 70)
     private var isHidden = false
     private var hideDeadline: Date?
+    /// L'app davanti è a schermo intero: il dock si nasconde e riappare dal bordo in basso.
+    private var fullScreen = false
     private var menuOpen = false
     private var mouseTimer: Timer?
     private var fastTracking = true
@@ -74,7 +78,21 @@ final class DockController {
         panel.ignoresMouseEvents = true
 
         layout(animated: false)
-        panel.orderFrontRegardless()
+        beside.install(system: system, spotify: spotify, devices: devices, settings: settings)
+        beside.isFullScreen = { [weak self] in self?.fullScreen ?? false }
+        applyMode()
+        settings.$besideAppleDock
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] beside in
+                MainActor.assumeIsolated {
+                    guard let self else { return }
+                    // Il Dock di Apple serve visibile solo nella modalità accanto.
+                    if beside { self.settings.restoreAppleDock() } else { self.settings.hideAppleDock() }
+                    self.applyMode()
+                }
+            }
+            .store(in: &cancellables)
 
         NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
                                                object: nil, queue: .main) { [weak self] _ in
@@ -162,10 +180,26 @@ final class DockController {
         settings.$autoHide
             .dropFirst()
             .sink { [weak self] autoHide in
-                guard let self, !autoHide, self.isHidden else { return }
+                guard let self, !autoHide, !self.fullScreen, self.isHidden else { return }
                 self.setHidden(false)
             }
             .store(in: &cancellables)
+
+        // Schermo intero: si ricontrolla quando cambia lo Spazio o l'app davanti
+        // (l'animazione di macOS dura circa mezzo secondo, quindi si guarda anche dopo).
+        let workspace = NSWorkspace.shared.notificationCenter
+        for name in [NSWorkspace.activeSpaceDidChangeNotification, NSWorkspace.didActivateApplicationNotification] {
+            workspace.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.updateFullScreen()
+                    for delay in [0.4, 1.0] {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                            MainActor.assumeIsolated { self?.updateFullScreen() }
+                        }
+                    }
+                }
+            }
+        }
 
         // Poll del mouse: decide se la finestra deve ricevere click e gestisce l'auto-nascondi.
         scheduleMouseTimer(fast: true)
@@ -298,6 +332,52 @@ final class DockController {
         layout(animated: true)
     }
 
+    /// Mostra il dock di Molo oppure le pillole accanto al Dock di Apple.
+    private func applyMode() {
+        let besideMode = settings.besideAppleDock
+        if besideMode {
+            previews.dismiss()
+            hover.pointerX = nil
+            panel.ignoresMouseEvents = true
+            panel.orderOut(nil)
+        } else {
+            panel.orderFrontRegardless()
+        }
+        beside.setActive(besideMode)
+    }
+
+    private func updateFullScreen() {
+        guard let screen else { return }
+        let now = Self.hasFullScreenWindow(on: screen)
+        guard now != fullScreen else { return }
+        fullScreen = now
+        hideDeadline = nil
+        if now {
+            setHidden(true)
+        } else if !settings.autoHide {
+            setHidden(false)
+        }
+    }
+
+    /// C'è una finestra normale di un'altra app che copre lo schermo intero, barra dei menu compresa.
+    private static func hasFullScreenWindow(on screen: NSScreen) -> Bool {
+        guard let mainHeight = NSScreen.screens.first?.frame.height,
+              let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements],
+                                                    kCGNullWindowID) as? [[String: Any]] else { return false }
+        // Coordinate di CGWindowList: origine in alto a sinistra dello schermo principale.
+        let f = screen.frame
+        let target = CGRect(x: f.minX, y: mainHeight - f.maxY, width: f.width, height: f.height)
+        let me = ProcessInfo.processInfo.processIdentifier
+        return list.contains { info in
+            guard (info[kCGWindowLayer as String] as? Int) == 0,
+                  (info[kCGWindowOwnerPID as String] as? pid_t) != me,
+                  let dict = info[kCGWindowBounds as String] as? NSDictionary,
+                  let bounds = CGRect(dictionaryRepresentation: dict) else { return false }
+            return abs(bounds.minX - target.minX) < 1 && abs(bounds.minY - target.minY) < 1
+                && abs(bounds.width - target.width) < 1 && abs(bounds.height - target.height) < 1
+        }
+    }
+
     /// Rettangolo della barra visibile, in coordinate schermo.
     private var barRect: NSRect {
         let frame = targetFrame(hidden: false)
@@ -324,6 +404,7 @@ final class DockController {
 
     /// Il puntatore è nella fascia in basso dello schermo, o c'è un'animazione del dock in corso.
     private var needsFastTracking: Bool {
+        if beside.isActive { return beside.isNear(NSEvent.mouseLocation) }
         if hover.pointerX != nil || hideDeadline != nil { return true }
         guard let screen else { return true }
         return NSEvent.mouseLocation.y <= max(barRect.maxY, screen.frame.minY) + 150
@@ -331,6 +412,10 @@ final class DockController {
 
     private func trackMouse() {
         let mouse = NSEvent.mouseLocation
+        if beside.isActive {
+            beside.mouseMoved(mouse)
+            return
+        }
         var area = barRect.insetBy(dx: -2, dy: -2)
         if hover.pointerX != nil {
             // Mentre le icone sono ingrandite, l'area attiva cresce con loro.
@@ -348,7 +433,7 @@ final class DockController {
             if pointer != hover.pointerX { hover.pointerX = pointer }
         }
 
-        guard settings.autoHide, let screen else { return }
+        guard settings.autoHide || fullScreen, let screen else { return }
         if isHidden {
             let atBottomEdge = mouse.y <= screen.frame.minY + 1
                 && mouse.x >= screen.frame.minX && mouse.x <= screen.frame.maxX
