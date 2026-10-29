@@ -232,9 +232,12 @@ final class WindowPreviewController {
     }
 
     /// Una finestra è "al centro" se almeno metà sta dentro uno schermo. Quelle nella striscia di
-    /// Stage Manager risultano piccole e fuori dallo schermo.
+    /// Stage Manager risultano rimpicciolite (circa 170×150) e spesso fuori dallo schermo; sugli schermi
+    /// esterni però la striscia sta dentro lo schermo, quindi conta anche la dimensione.
     private static func isOnStage(_ frame: CGRect) -> Bool {
         guard let mainHeight = NSScreen.screens.first?.frame.height, frame.width * frame.height > 0 else { return false }
+        let stageManager = UserDefaults(suiteName: "com.apple.WindowManager")?.bool(forKey: "GloballyEnabled") ?? false
+        if stageManager && frame.width <= 300 && frame.height <= 300 { return false }
         let visible = NSScreen.screens.reduce(CGFloat(0)) { total, screen in
             // Coordinate dello schermo con l'origine in alto a sinistra, come quelle di ScreenCaptureKit.
             let rect = CGRect(x: screen.frame.minX, y: mainHeight - screen.frame.maxY,
