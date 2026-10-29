@@ -77,7 +77,7 @@ Molo è in italiano e in inglese: segue la lingua del Mac, oppure la scegli in *
 ## Requisiti
 
 - macOS 14 Sonoma o successivo (Apple Silicon o Intel)
-- Gli **Strumenti da riga di comando di Xcode** (servono per compilare). Se non li hai, apri il Terminale ed esegui:
+- Solo per compilarlo da te: gli **Strumenti da riga di comando di Xcode**. Se non li hai, apri il Terminale ed esegui:
   ```bash
   xcode-select --install
   ```
@@ -86,6 +86,19 @@ Molo è in italiano e in inglese: segue la lingua del Mac, oppure la scegli in *
 ---
 
 ## Installazione
+
+### Scaricare l'app (il più semplice)
+
+1. Scarica `Molo-x.y.z.zip` dall'ultima [release](https://github.com/Bargi20/Molo/releases/latest) e aprilo: compare `Molo.app`.
+2. Trascina `Molo.app` nella cartella **Applicazioni**.
+3. Molo non è firmato con un certificato Apple, quindi al primo avvio macOS lo blocca. Per sbloccarlo, esegui nel Terminale:
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/Molo.app
+   ```
+   In alternativa: prova ad aprirlo, poi vai in **Impostazioni di Sistema → Privacy e sicurezza** e clicca **Apri comunque**.
+4. Apri Molo.
+
+### Compilarlo da te
 
 Apri il **Terminale** (Spotlight → scrivi "Terminale") ed esegui questi comandi, uno alla volta:
 
@@ -237,6 +250,9 @@ Poi collega l'iPhone al Mac con il cavo, sbloccalo e tocca **Autorizza**. Da que
 
 ## Problemi comuni
 
+**"Molo.app è danneggiato" o "non può essere aperto".**
+È il blocco di macOS per le app scaricate non firmate da Apple: vedi il passo 3 di [Scaricare l'app](#scaricare-lapp-il-più-semplice).
+
 **Vedo due dock uno sopra l'altro.**
 Non hai ancora nascosto il Dock di Apple: vedi [Togliere il Dock di Apple](#togliere-il-dock-di-apple).
 
@@ -279,6 +295,7 @@ swift build                       # compila (debug)
 swift test                        # esegue i test
 .build/debug/Molo                 # avvia senza creare la .app
 ./scripts/build-app.sh            # crea build/Molo.app
+./scripts/build-app.sh --release  # app universale e build/Molo-<versione>.zip per una release
 ```
 
 ### Rigenerare le immagini del README
