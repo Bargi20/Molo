@@ -98,7 +98,7 @@ struct SystemWidgets: View {
             if enabled.contains(.cpu) {
                 RingTile(title: "CPU",
                          value: system.cpu,
-                         detail: "CPU in uso: \(percent(system.cpu))",
+                         detail: L("CPU in uso: %@", percent(system.cpu)),
                          color: loadColor(system.cpu),
                          height: height,
                          action: { openApp("com.apple.ActivityMonitor") })
@@ -108,7 +108,7 @@ struct SystemWidgets: View {
             if enabled.contains(.ram) {
                 RingTile(title: "RAM",
                          value: system.memoryFraction,
-                         detail: "Memoria: \(bytes(system.memoryUsed)) di \(bytes(system.memoryTotal))",
+                         detail: L("Memoria: %@ di %@", bytes(system.memoryUsed), bytes(system.memoryTotal)),
                          color: loadColor(system.memoryFraction),
                          height: height,
                          action: { openApp("com.apple.ActivityMonitor") })
@@ -116,7 +116,7 @@ struct SystemWidgets: View {
             }
 
             if enabled.contains(.battery), let level = system.batteryLevel {
-                RingTile(title: system.batteryCharging ? "⚡︎ BATT" : "BATT",
+                RingTile(title: system.batteryCharging ? "⚡︎ " + L("BATT") : L("BATT"),
                          value: Double(level) / 100,
                          detail: batteryDetail(level),
                          color: batteryColor(level),
@@ -134,7 +134,7 @@ struct SystemWidgets: View {
             }
 
             if enabled.contains(.network) {
-                WidgetTile(detail: "Rete: ↓ \(speed(system.downloadSpeed))  ↑ \(speed(system.uploadSpeed))",
+                WidgetTile(detail: L("Rete: ↓ %@  ↑ %@", speed(system.downloadSpeed), speed(system.uploadSpeed)),
                            height: height, action: { openApp("com.apple.ActivityMonitor") }) {
                     if wide {
                         VStack(alignment: .leading, spacing: 0) {
@@ -164,9 +164,9 @@ struct SystemWidgets: View {
             }
 
             if enabled.contains(.disk) {
-                RingTile(title: "DISCO",
+                RingTile(title: L("DISCO"),
                          value: system.diskUsedFraction,
-                         detail: "Disco: \(bytes(system.diskFree)) liberi di \(bytes(system.diskTotal))",
+                         detail: L("Disco: %@ liberi di %@", bytes(system.diskFree), bytes(system.diskTotal)),
                          color: loadColor(system.diskUsedFraction),
                          height: height,
                          action: { openApp("com.apple.DiskUtility") })
@@ -179,9 +179,9 @@ struct SystemWidgets: View {
     }
 
     private func batteryDetail(_ level: Int) -> String {
-        if system.batteryCharging { return "Batteria \(level)% · in carica" }
-        if system.batteryOnAC { return "Batteria \(level)% · collegato all'alimentazione" }
-        return "Batteria \(level)%"
+        if system.batteryCharging { return L("Batteria %d%% · in carica", level) }
+        if system.batteryOnAC { return L("Batteria %d%% · collegato all'alimentazione", level) }
+        return L("Batteria %d%%", level)
     }
 }
 
@@ -473,7 +473,7 @@ struct DeviceTile: View {
     @Environment(\.widgetWide) private var wide
 
     private var detail: String {
-        let levels = device.levels.map { "\($0.label) \($0.percent)%" }.joined(separator: " · ")
+        let levels = device.levels.map { "\(L($0.label)) \($0.percent)%" }.joined(separator: " · ")
         return "\(device.name): \(levels)"
     }
 

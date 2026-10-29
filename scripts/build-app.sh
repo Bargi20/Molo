@@ -9,6 +9,8 @@ APP=build/Molo.app
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp .build/release/Molo "$APP/Contents/MacOS/Molo"
+# Traduzioni (italiano e inglese).
+cp -R Resources/*.lproj "$APP/Contents/Resources/"
 
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -17,6 +19,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <dict>
     <key>CFBundleName</key><string>Molo</string>
     <key>CFBundleDisplayName</key><string>Molo</string>
+    <key>CFBundleDevelopmentRegion</key><string>en</string>
+    <key>CFBundleLocalizations</key><array><string>it</string><string>en</string></array>
     <key>CFBundleIdentifier</key><string>local.molo.dock</string>
     <key>CFBundleExecutable</key><string>Molo</string>
     <key>CFBundlePackageType</key><string>APPL</string>

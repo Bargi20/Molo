@@ -1,0 +1,88 @@
+/* Traduzione inglese di Molo. Chiave = testo italiano nel codice. */
+
+"Impostazioni di Molo" = "Molo Settings";
+"Ora e data" = "Time and date";
+"Spotify (brano in riproduzione)" = "Spotify (now playing)";
+"Batterie di cuffie e dispositivi" = "Headphone and device batteries";
+"Memoria (RAM)" = "Memory (RAM)";
+"Batteria" = "Battery";
+"Sinistra" = "Left";
+"Destra" = "Right";
+"Custodia" = "Case";
+"Rete" = "Network";
+"Disco" = "Disk";
+
+/* Menu del dock */
+"Impostazioni…" = "Settings…";
+"Widget accanto al Dock di Apple" = "Widgets beside Apple's Dock";
+"Nascondi automaticamente" = "Automatically hide";
+"Mostra info di sistema" = "Show system info";
+"Dimensione icone" = "Icon size";
+"Ripristina il Dock di Apple" = "Restore Apple's Dock";
+"Nascondi il Dock di Apple" = "Hide Apple's Dock";
+"Non aprire al login" = "Don't open at login";
+"Apri al login" = "Open at login";
+"Esci da Molo" = "Quit Molo";
+"Rimuovi dal Dock" = "Remove from Dock";
+"Mantieni nel Dock" = "Keep in Dock";
+"Mostra nel Finder" = "Show in Finder";
+"Nascondi" = "Hide";
+"Esci" = "Quit";
+"Uscita forzata" = "Force Quit";
+"Cestino" = "Trash";
+
+/* Impostazioni */
+"Come il sistema" = "Same as system";
+"Generali" = "General";
+"Info di sistema" = "System info";
+"App e cartelle" = "Apps and folders";
+"Dimensioni" = "Size";
+"Le icone sono ridotte al %d%% perché la barra non sta nello schermo. Togli qualche elemento per averle più grandi." = "Icons are scaled to %d%% because the bar doesn't fit on screen. Remove some items to make them bigger.";
+"Ingrandimento" = "Magnification";
+"No" = "Off";
+"Max" = "Max";
+"Modalità" = "Mode";
+"Molo mostra solo i widget, ai bordi dello schermo e alla stessa altezza del Dock di Apple, che torna visibile. Le altre opzioni del dock valgono quando è spenta." = "Molo shows only the widgets, at the screen edges and at the same height as Apple's Dock, which becomes visible again. The other dock options apply when this is off.";
+"Comportamento" = "Behavior";
+"Nascondi e mostra automaticamente il dock" = "Automatically hide and show the dock";
+"Mostra le app aperte non fissate" = "Show open apps that aren't pinned";
+"Mostra il Cestino" = "Show the Trash";
+"Anteprime delle finestre al passaggio del mouse" = "Window previews on hover";
+"Registrazione schermo" = "Screen Recording";
+"Accessibilità" = "Accessibility";
+"Anteprime" = "Previews";
+"La Registrazione schermo serve per le miniature, l'Accessibilità per portare davanti solo la finestra scelta. Dopo averli attivati, riavvia Molo." = "Screen Recording is needed for the thumbnails, Accessibility to bring only the chosen window to the front. After allowing them, restart Molo.";
+"Sistema" = "System";
+"Lingua" = "Language";
+"Apri Molo al login" = "Open Molo at login";
+"Dock di Apple" = "Apple's Dock";
+"Ripristina" = "Restore";
+"Molo" = "Molo";
+"Attivo" = "Allowed";
+"Consenti…" = "Allow…";
+"Mostra le info di sistema nel dock" = "Show system info in the dock";
+"Riquadri" = "Tiles";
+"Trascina per cambiare l'ordine. Puoi anche trascinare app e cartelle dal Finder direttamente sul dock." = "Drag to reorder. You can also drag apps and folders from the Finder straight onto the dock.";
+"cartella" = "folder";
+"Rimuovi dal dock" = "Remove from dock";
+"Aggiungi app…" = "Add app…";
+"Aggiungi cartella…" = "Add folder…";
+"Cartelle rapide" = "Quick folders";
+"Aggiungi al dock" = "Add to dock";
+
+/* Widget */
+"CPU in uso: %@" = "CPU in use: %@";
+"Memoria: %@ di %@" = "Memory: %@ of %@";
+"BATT" = "BATT";
+"Rete: ↓ %@  ↑ %@" = "Network: ↓ %@  ↑ %@";
+"DISCO" = "DISK";
+"Disco: %@ liberi di %@" = "Disk: %@ free of %@";
+"Batteria %d%% · in carica" = "Battery %d%% · charging";
+"Batteria %d%% · collegato all'alimentazione" = "Battery %d%% · on power adapter";
+"Batteria %d%%" = "Battery %d%%";
+"Consenti controllo" = "Allow control";
+"Impostazioni di Sistema → Privacy e sicurezza → Automazione → Molo → Spotify" = "System Settings → Privacy & Security → Automation → Molo → Spotify";
+
+/* Anteprime */
+"Anteprime delle finestre" = "Window previews";
+"Per vederle, consenti a Molo la Registrazione schermo." = "To see them, allow Molo to use Screen Recording.";

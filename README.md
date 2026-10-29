@@ -56,6 +56,22 @@ Passa il mouse su un riquadro per vedere i dettagli. Anche i widget partecipano 
 
 ![Ingrandimento a onda sulle app](docs/images/dock-wave.png)
 
+**Schermo intero e Mission Control**
+- Con un'app a schermo intero il dock si nasconde da solo e ricompare quando porti il mouse sul bordo inferiore.
+- In Mission Control (la vista di tutte le finestre aperte) il dock non compare, come il Dock di Apple.
+
+**Modalità "Widget accanto al Dock di Apple"**
+
+Se preferisci tenere il Dock di Apple, Molo può mostrare solo i widget: due pillole ai bordi dello schermo, alla stessa altezza del Dock. A sinistra ora e Spotify, a destra le info di sistema, con i valori scritti grandi.
+
+![Widget ai lati del Dock di Apple](docs/images/widget-accanto-dock.png)
+
+Si attiva da **Impostazioni → Generali → Modalità** (vedi [Togliere il Dock di Apple](#togliere-il-dock-di-apple)).
+
+**Lingue**
+
+Molo è in italiano e in inglese: segue la lingua del Mac, oppure la scegli in **Impostazioni → Generali → Lingua** (Molo si riavvia da solo).
+
 ---
 
 ## Requisiti
@@ -99,7 +115,7 @@ Il Dock di Apple fa parte di macOS e **non si può disinstallare**. Quello che s
 
 Scegli **uno** di questi metodi.
 
-> **Alternativa: tenere il Dock di Apple.** In **Impostazioni → Generali → Modalità** attiva **Widget accanto al Dock di Apple**: Molo rimette visibile il Dock di sistema e mostra solo i widget, in due pillole ai suoi lati (ora e Spotify a sinistra, info di sistema a destra). Così restano tutte le funzioni del Dock di Apple: badge, schermo intero, spazio riservato sotto le finestre. Spegnendo l'opzione, il Dock di Apple torna nascosto.
+> **Alternativa: tenere il Dock di Apple.** In **Impostazioni → Generali → Modalità** attiva **Widget accanto al Dock di Apple**: Molo rimette visibile il Dock di sistema e mostra solo i widget, in due pillole ai bordi dello schermo alla stessa altezza del Dock (ora e Spotify a sinistra, info di sistema a destra). Così restano tutte le funzioni del Dock di Apple: badge, schermo intero, spazio riservato sotto le finestre. Spegnendo l'opzione, il Dock di Apple torna nascosto.
 
 ### Metodo 1: dal menu di Molo (il più semplice)
 
@@ -174,7 +190,7 @@ Tasto destro su una zona vuota del dock → **Impostazioni…**. Si aprono anche
   - nascondi automaticamente il dock
   - mostra le app aperte e il Cestino
   - anteprime delle finestre, con lo stato dei due permessi e un pulsante per attivarli
-  - apri al login, nascondi o ripristina il Dock di Apple, esci
+  - lingua (come il sistema, italiano o inglese), apri al login, nascondi o ripristina il Dock di Apple, esci
 - **Info di sistema**: scegli quali riquadri mostrare.
 - **App e cartelle**: riordina, rimuovi, aggiungi app o cartelle. C'è anche un pulsante rapido per Download, Documenti e Scrivania.
 
@@ -286,6 +302,7 @@ swift scripts/readme-media.swift /tmp/molo-frames docs/images  # dock.png, dock-
 | `AppsModel.swift` | app fissate e in esecuzione |
 | `WindowPreviews.swift` | anteprime delle finestre |
 | `BesideDock.swift` | widget ai lati del Dock di Apple |
+| `Localization.swift`, `Resources/*.lproj` | traduzioni (italiano, inglese) e scelta della lingua |
 | `SettingsView.swift` | finestra Impostazioni |
 | `Tests/MoloTests` | test dell'importazione dal Dock di Apple |
 

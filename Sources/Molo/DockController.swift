@@ -248,7 +248,7 @@ final class DockController {
             let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 660),
                                   styleMask: [.titled, .closable, .miniaturizable],
                                   backing: .buffered, defer: false)
-            window.title = "Impostazioni di Molo"
+            window.title = L("Impostazioni di Molo")
             window.isReleasedWhenClosed = false
             window.contentView = NSHostingView(rootView: SettingsView(settings: settings, apps: apps))
             window.center()

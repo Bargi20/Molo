@@ -208,7 +208,7 @@ struct DockMenu: View {
         } else {
             Button("Nascondi il Dock di Apple") { settings.hideAppleDock() }
         }
-        Button(settings.launchAtLogin ? "Non aprire al login" : "Apri al login") {
+        Button(settings.launchAtLogin ? L("Non aprire al login") : L("Apri al login")) {
             settings.toggleLaunchAtLogin()
         }
         Divider()
@@ -376,7 +376,7 @@ struct TrashView: View {
         .contentShape(Rectangle())
         .overlay(alignment: .top) {
             if hovering {
-                HoverBubble(text: "Cestino")
+                HoverBubble(text: L("Cestino"))
                     .offset(y: bubbleOffset(size: size, scale: scale))
                     .transition(.scale(scale: 0.85, anchor: .bottom).combined(with: .opacity))
             }

@@ -22,7 +22,7 @@ struct SettingsView: View {
                 .tabItem { Label("App e cartelle", systemImage: "square.grid.2x2") }
                 .tag(2)
         }
-        .frame(width: 520, height: 660)
+        .frame(width: 520, height: 760)
     }
 }
 
@@ -43,7 +43,7 @@ private struct GeneralTab: View {
                     }
                 }
                 if settings.fitScale < 0.99 {
-                    Text("Le icone sono ridotte al \(Int(settings.fitScale * 100))% perché la barra non sta nello schermo. Togli qualche elemento per averle più grandi.")
+                    Text(L("Le icone sono ridotte al %d%% perché la barra non sta nello schermo. Togli qualche elemento per averle più grandi.", Int(settings.fitScale * 100)))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -61,7 +61,7 @@ private struct GeneralTab: View {
             } header: {
                 Text("Modalità")
             } footer: {
-                Text("Molo mostra solo i widget, ai lati del Dock di Apple, che torna visibile. Le altre opzioni del dock valgono quando è spenta.")
+                Text("Molo mostra solo i widget, ai bordi dello schermo e alla stessa altezza del Dock di Apple, che torna visibile. Le altre opzioni del dock valgono quando è spenta.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -92,6 +92,9 @@ private struct GeneralTab: View {
             }
 
             Section("Sistema") {
+                Picker("Lingua", selection: Binding(get: { AppLanguage.current }, set: { $0.apply() })) {
+                    ForEach(AppLanguage.allCases) { Text($0.title).tag($0) }
+                }
                 Toggle("Apri Molo al login", isOn: Binding(
                     get: { settings.launchAtLogin },
                     set: { _ in settings.toggleLaunchAtLogin() }
@@ -230,11 +233,11 @@ private struct ItemsTab: View {
         if pickApps {
             panel.allowedContentTypes = [.application]
             panel.directoryURL = URL(fileURLWithPath: "/Applications")
-            panel.prompt = "Aggiungi al dock"
+            panel.prompt = L("Aggiungi al dock")
         } else {
             panel.canChooseFiles = false
             panel.canChooseDirectories = true
-            panel.prompt = "Aggiungi al dock"
+            panel.prompt = L("Aggiungi al dock")
         }
         guard panel.runModal() == .OK else { return }
         panel.urls.forEach(apps.pin(url:))

@@ -9,14 +9,14 @@ enum DockWidget: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .clock: return "Ora e data"
-        case .spotify: return "Spotify (brano in riproduzione)"
-        case .devices: return "Batterie di cuffie e dispositivi"
+        case .clock: return L("Ora e data")
+        case .spotify: return L("Spotify (brano in riproduzione)")
+        case .devices: return L("Batterie di cuffie e dispositivi")
         case .cpu: return "CPU"
-        case .ram: return "Memoria (RAM)"
-        case .battery: return "Batteria"
-        case .network: return "Rete"
-        case .disk: return "Disco"
+        case .ram: return L("Memoria (RAM)")
+        case .battery: return L("Batteria")
+        case .network: return L("Rete")
+        case .disk: return L("Disco")
         }
     }
 
