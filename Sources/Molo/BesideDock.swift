@@ -40,13 +40,7 @@ struct BesideWidgetsView: View {
                     .environment(\.widgetWide, true)
                     .padding(.horizontal, 3)
                     .frame(height: layout.dockHeight)
-                    .background(
-                        VisualEffectBackground(cornerRadius: 16)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .strokeBorder(Color.white.opacity(0.18), lineWidth: 1)
-                            )
-                    )
+                    .modifier(DockGlass(cornerRadius: 13))
                     .contextMenu { DockMenu(settings: settings) }
             }
         }
@@ -54,6 +48,29 @@ struct BesideWidgetsView: View {
         .onGeometryChange(for: CGSize.self) { $0.size } action: { onSize($0) }
         .frame(maxWidth: .infinity, maxHeight: .infinity,
                alignment: side == .left ? .bottomLeading : .bottomTrailing)
+    }
+}
+
+/// Lo stesso vetro del Dock di Apple (Liquid Glass da macOS 26), o lo sfondo sfocato prima.
+private struct DockGlass: ViewModifier {
+    let cornerRadius: CGFloat
+
+    func body(content: Content) -> some View {
+        if #available(macOS 26, *) {
+            // Come il Dock: vetro trasparente (non smerigliato) con un filo di luce sul bordo.
+            let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            content
+                .glassEffect(.clear.tint(Color.black.opacity(0.08)), in: shape)
+                .overlay(shape.strokeBorder(Color.white.opacity(0.5), lineWidth: 0.5))
+        } else {
+            content.background(
+                VisualEffectBackground(cornerRadius: cornerRadius)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.18), lineWidth: 1)
+                    )
+            )
+        }
     }
 }
 
@@ -71,6 +88,10 @@ final class BesideDockController {
     /// Spazio trasparente intorno alla pillola (le pillole non hanno etichette al passaggio del mouse).
     private static let headroom: CGFloat = 0
     private static let sideRoom: CGFloat = 0
+
+    /// Lo sfondo visibile del Dock di Apple sta qualche punto più in basso del riquadro
+    /// che dà l'Accessibilità (misurato su macOS 26 e successivi).
+    private static let visibleDockDrop: CGFloat = 5
 
     /// Impostato dal controller: l'app davanti è a schermo intero.
     var isFullScreen: () -> Bool = { false }
@@ -138,8 +159,9 @@ final class BesideDockController {
         if abs(layout.dockHeight - dock.height) > 0.5 { layout.dockHeight = dock.height }
         guard let screen = NSScreen.screens.first(where: { $0.frame.contains(CGPoint(x: dock.midX, y: dock.midY)) })
         else { return }
+        let visibleMinY = dock.minY - Self.visibleDockDrop
         // Dal bordo laterale la stessa distanza che il Dock ha dal bordo in basso.
-        let margin = max(4, dock.minY - screen.frame.minY)
+        let margin = max(4, visibleMinY - screen.frame.minY)
 
         for (side, panel) in panels {
             guard let size = sizes[side], size.width > 0 else {
@@ -149,7 +171,7 @@ final class BesideDockController {
             let width = size.width + Self.sideRoom
             let height = size.height + Self.headroom
             // Stessa base e stessa altezza del Dock di Apple; lo spazio per le etichette è verso il centro.
-            let y = dock.minY
+            let y = visibleMinY
             let x = side == .left ? screen.frame.minX + margin : screen.frame.maxX - margin - width
             let frame = NSRect(x: x, y: y, width: width, height: height).integral
             if panel.frame != frame { panel.setFrame(frame, display: true) }
