@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-VERSION=1.0.2
+VERSION=1.0.3
 
 if [[ "${1:-}" == "--release" ]]; then
     swift build -c release --arch arm64 --arch x86_64
