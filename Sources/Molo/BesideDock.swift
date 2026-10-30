@@ -85,8 +85,8 @@ final class BesideDockController {
     private var timer: Timer?
     private(set) var isActive = false
 
-    /// Spazio trasparente intorno alla pillola (le pillole non hanno etichette al passaggio del mouse).
-    private static let headroom: CGFloat = 0
+    /// Spazio trasparente sopra la pillola: senza, il bordo in alto viene tagliato dalla finestra.
+    private static let headroom: CGFloat = 4
     private static let sideRoom: CGFloat = 0
 
     /// Lo sfondo visibile del Dock di Apple sta qualche punto più in basso del riquadro
